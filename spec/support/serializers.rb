@@ -46,7 +46,7 @@ module MyApp
   end
 
   class PostSerializer
-    include JSONAPI::Serializer
+    include ForestAdmin::JSONAPI::Serializer
 
     attribute :title
     attribute :long_content do
@@ -58,7 +58,7 @@ module MyApp
   end
 
   class UnderscoreTestSerializer
-    include JSONAPI::Serializer
+    include ForestAdmin::JSONAPI::Serializer
 
     has_many :tagged_posts
 
@@ -68,7 +68,7 @@ module MyApp
   end
 
   class LongCommentSerializer
-    include JSONAPI::Serializer
+    include ForestAdmin::JSONAPI::Serializer
 
     attribute :body
     has_one :user
@@ -80,7 +80,7 @@ module MyApp
   # More customized, one-off serializers to test particular behaviors:
 
   class SimplestPostSerializer
-    include JSONAPI::Serializer
+    include ForestAdmin::JSONAPI::Serializer
 
     attribute :title
     attribute :long_content do
@@ -93,7 +93,7 @@ module MyApp
   end
 
   class PostSerializerWithMetadata
-    include JSONAPI::Serializer
+    include ForestAdmin::JSONAPI::Serializer
 
     attribute :title
     attribute :long_content do
@@ -113,7 +113,7 @@ module MyApp
   end
 
   class PostSerializerWithoutIncludeLinks
-    include JSONAPI::Serializer
+    include ForestAdmin::JSONAPI::Serializer
 
     attribute :title
 
@@ -126,7 +126,7 @@ module MyApp
   end
 
   class PostSerializerWithIncludeData
-    include JSONAPI::Serializer
+    include ForestAdmin::JSONAPI::Serializer
 
     attribute :title
 
@@ -151,7 +151,7 @@ module MyApp
   end
 
   class LongCommentsSerializerWithContext
-    include JSONAPI::Serializer
+    include ForestAdmin::JSONAPI::Serializer
 
     attribute :body, if: :show_body?
     has_one :user, if: :show_comments_user?
@@ -167,7 +167,7 @@ module MyApp
 
 
   class PostSerializerWithoutLinks
-    include JSONAPI::Serializer
+    include ForestAdmin::JSONAPI::Serializer
 
     attribute :title
     attribute :long_content do
@@ -191,7 +191,7 @@ module MyApp
   end
 
   class PostSerializerWithBaseUrl
-    include JSONAPI::Serializer
+    include ForestAdmin::JSONAPI::Serializer
 
     def base_url
       'http://example.com'
@@ -207,11 +207,11 @@ module MyApp
   end
 
   class EmptySerializer
-    include JSONAPI::Serializer
+    include ForestAdmin::JSONAPI::Serializer
   end
 
   class MultipleAttributesSerializer
-    include JSONAPI::Serializer
+    include ForestAdmin::JSONAPI::Serializer
 
     attributes :title, :body
   end
@@ -226,7 +226,7 @@ end
 # There is no explicit test for this, just implicit tests that correctly serialize User objects.
 module MyAppOtherNamespace
   class UserSerializer
-    include JSONAPI::Serializer
+    include ForestAdmin::JSONAPI::Serializer
 
     attribute :name
   end
@@ -236,13 +236,13 @@ module Api
   module V1
     module MyApp
       class UserSerializer
-        include JSONAPI::Serializer
+        include ForestAdmin::JSONAPI::Serializer
 
         attribute :name
       end
 
       class PostSerializer
-        include JSONAPI::Serializer
+        include ForestAdmin::JSONAPI::Serializer
 
         attribute :title
 
@@ -251,7 +251,7 @@ module Api
       end
 
       class LongCommentSerializer
-        include JSONAPI::Serializer
+        include ForestAdmin::JSONAPI::Serializer
 
         attribute :body
         has_one :user
