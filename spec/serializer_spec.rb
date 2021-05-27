@@ -3,10 +3,10 @@ require 'active_model/naming'
 require 'active_model/translation'
 require 'pry'
 
-describe JSONAPI::Serializer do
+describe ForestAdmin::JSONAPI::Serializer do
   def serialize_primary(object, options = {})
     # Note: intentional high-coupling to protected method for tests.
-    JSONAPI::Serializer.send(:serialize_primary, object, options)
+    ForestAdmin::JSONAPI::Serializer.send(:serialize_primary, object, options)
   end
 
   describe 'internal-only serialize_primary' do
@@ -451,7 +451,7 @@ describe JSONAPI::Serializer do
   end
 
   # The members data and errors MUST NOT coexist in the same document.
-  describe 'JSONAPI::Serializer.serialize_errors' do
+  describe 'ForestAdmin::JSONAPI::Serializer.serialize_errors' do
     it 'can include a top level errors node' do
       errors = [
         {
@@ -465,7 +465,7 @@ describe JSONAPI::Serializer do
           'detail' => 'First name must contain an emoji.'
         }
       ]
-      expect(JSONAPI::Serializer.serialize_errors(errors)).to eq({'errors' => errors})
+      expect(ForestAdmin::JSONAPI::Serializer.serialize_errors(errors)).to eq({'errors' => errors})
     end
 
     it 'works for active_record' do
@@ -503,35 +503,35 @@ describe JSONAPI::Serializer do
           'detail' => "First name can't be blank"
         }
       ]
-      expect(JSONAPI::Serializer.serialize_errors(user.errors)).to eq({
+      expect(ForestAdmin::JSONAPI::Serializer.serialize_errors(user.errors)).to eq({
         'errors' => jsonapi_errors,
       })
     end
   end
 
-  describe 'JSONAPI::Serializer.serialize' do
+  describe 'ForestAdmin::JSONAPI::Serializer.serialize' do
     # The following tests rely on the fact that serialize_primary has been tested above, so object
     # primary data is not explicitly tested here. If things are broken, look above here first.
 
     it 'can serialize a nil object' do
-      expect(JSONAPI::Serializer.serialize(nil)).to eq({'data' => nil})
+      expect(ForestAdmin::JSONAPI::Serializer.serialize(nil)).to eq({'data' => nil})
     end
 
     it 'can serialize a nil object with includes' do
       # Also, the include argument is not validated in this case because we don't know the type.
-      data = JSONAPI::Serializer.serialize(nil, include: ['fake'])
+      data = ForestAdmin::JSONAPI::Serializer.serialize(nil, include: ['fake'])
       expect(data).to eq({'data' => nil, 'included' => []})
     end
 
     it 'can serialize an empty array' do
       # Also, the include argument is not validated in this case because we don't know the type.
-      data = JSONAPI::Serializer.serialize([], is_collection: true, include: ['fake'])
+      data = ForestAdmin::JSONAPI::Serializer.serialize([], is_collection: true, include: ['fake'])
       expect(data).to eq({'data' => [], 'included' => []})
     end
 
     it 'can serialize a simple object' do
       post = create(:post)
-      expect(JSONAPI::Serializer.serialize(post)).to eq({
+      expect(ForestAdmin::JSONAPI::Serializer.serialize(post)).to eq({
         'data' => serialize_primary(post, {serializer: MyApp::PostSerializer}),
       })
     end
@@ -539,7 +539,7 @@ describe JSONAPI::Serializer do
     it 'can include a top level jsonapi node' do
       post = create(:post)
       jsonapi_version = {'version' => '1.0'}
-      expect(JSONAPI::Serializer.serialize(post, jsonapi: jsonapi_version)).to eq({
+      expect(ForestAdmin::JSONAPI::Serializer.serialize(post, jsonapi: jsonapi_version)).to eq({
         'jsonapi' => {'version' => '1.0'},
         'data' => serialize_primary(post, {serializer: MyApp::PostSerializer}),
       })
@@ -548,7 +548,7 @@ describe JSONAPI::Serializer do
     it 'can include a top level meta node' do
       post = create(:post)
       meta = {authors: ['Yehuda Katz', 'Steve Klabnik'], copyright: 'Copyright 2015 Example Corp.'}
-      expect(JSONAPI::Serializer.serialize(post, meta: meta)).to eq({
+      expect(ForestAdmin::JSONAPI::Serializer.serialize(post, meta: meta)).to eq({
         'meta' => meta,
         'data' => serialize_primary(post, {serializer: MyApp::PostSerializer}),
       })
@@ -557,7 +557,7 @@ describe JSONAPI::Serializer do
     it 'can include a top level links node' do
       post = create(:post)
       links = {self: 'http://example.com/posts'}
-      expect(JSONAPI::Serializer.serialize(post, links: links)).to eq({
+      expect(ForestAdmin::JSONAPI::Serializer.serialize(post, links: links)).to eq({
         'links' => links,
         'data' => serialize_primary(post, {serializer: MyApp::PostSerializer}),
       })
@@ -578,7 +578,7 @@ describe JSONAPI::Serializer do
           "detail" => "First name must contain an emoji."
         }
       ]
-      expect(JSONAPI::Serializer.serialize(post, errors: errors)).to eq({
+      expect(ForestAdmin::JSONAPI::Serializer.serialize(post, errors: errors)).to eq({
         'errors' => errors,
         'data' => serialize_primary(post, {serializer: MyApp::PostSerializer}),
       })
@@ -590,14 +590,14 @@ describe JSONAPI::Serializer do
         "defining this just to defeat the duck-type check"
       end
 
-      expect(JSONAPI::Serializer.serialize(post, skip_collection_check: true)).to eq({
+      expect(ForestAdmin::JSONAPI::Serializer.serialize(post, skip_collection_check: true)).to eq({
         'data' => serialize_primary(post, {serializer: MyApp::PostSerializer}),
       })
     end
 
     it 'can serialize a collection' do
       posts = create_list(:post, 2)
-      expect(JSONAPI::Serializer.serialize(posts, is_collection: true)).to eq({
+      expect(ForestAdmin::JSONAPI::Serializer.serialize(posts, is_collection: true)).to eq({
         'data' => [
           serialize_primary(posts.first, {serializer: MyApp::PostSerializer}),
           serialize_primary(posts.last, {serializer: MyApp::PostSerializer}),
@@ -607,30 +607,30 @@ describe JSONAPI::Serializer do
 
     it 'raises AmbiguousCollectionError if is_collection is not passed' do
       posts = create_list(:post, 2)
-      error = JSONAPI::Serializer::AmbiguousCollectionError
-      expect { JSONAPI::Serializer.serialize(posts) }.to raise_error(error)
+      error = ForestAdmin::JSONAPI::Serializer::AmbiguousCollectionError
+      expect { ForestAdmin::JSONAPI::Serializer.serialize(posts) }.to raise_error(error)
     end
 
     it 'raises error if include is not named correctly' do
       post = create(:post)
-      error = JSONAPI::Serializer::InvalidIncludeError
-      expect { JSONAPI::Serializer.serialize(post, include: ['long_comments']) }.to raise_error(error)
+      error = ForestAdmin::JSONAPI::Serializer::InvalidIncludeError
+      expect { ForestAdmin::JSONAPI::Serializer.serialize(post, include: ['long_comments']) }.to raise_error(error)
     end
 
     it 'can serialize a nil object when given serializer' do
       options = {serializer: MyApp::PostSerializer}
-      expect(JSONAPI::Serializer.serialize(nil, options)).to eq({'data' => nil})
+      expect(ForestAdmin::JSONAPI::Serializer.serialize(nil, options)).to eq({'data' => nil})
     end
 
     it 'can serialize an empty array when given serializer' do
       options = {is_collection: true, serializer: MyApp::PostSerializer}
-      expect(JSONAPI::Serializer.serialize([], options)).to eq({'data' => []})
+      expect(ForestAdmin::JSONAPI::Serializer.serialize([], options)).to eq({'data' => []})
     end
 
     it 'can serialize a simple object when given serializer' do
       post = create(:post)
       options = {serializer: MyApp::SimplestPostSerializer}
-      expect(JSONAPI::Serializer.serialize(post, options)).to eq({
+      expect(ForestAdmin::JSONAPI::Serializer.serialize(post, options)).to eq({
         'data' => serialize_primary(post, {serializer: MyApp::SimplestPostSerializer}),
       })
     end
@@ -642,7 +642,7 @@ describe JSONAPI::Serializer do
         serializer: MyApp::PostSerializer,
         include_linkages: ['author'],
       })
-      expect(JSONAPI::Serializer.serialize(post, include: ['author'])).to eq({
+      expect(ForestAdmin::JSONAPI::Serializer.serialize(post, include: ['author'])).to eq({
         'data' => expected_primary_data,
         'included' => [],
       })
@@ -655,7 +655,7 @@ describe JSONAPI::Serializer do
         serializer: MyApp::PostSerializer,
         include_linkages: ['author'],
       })
-      expect(JSONAPI::Serializer.serialize(post, include: ['author'])).to eq({
+      expect(ForestAdmin::JSONAPI::Serializer.serialize(post, include: ['author'])).to eq({
         'data' => expected_primary_data,
         'included' => [
           serialize_primary(post.author, {serializer: MyAppOtherNamespace::UserSerializer}),
@@ -670,7 +670,7 @@ describe JSONAPI::Serializer do
         serializer: MyApp::PostSerializer,
         include_linkages: ['long-comments'],
       })
-      expect(JSONAPI::Serializer.serialize(post, include: ['long-comments'])).to eq({
+      expect(ForestAdmin::JSONAPI::Serializer.serialize(post, include: ['long-comments'])).to eq({
         'data' => expected_primary_data,
         'included' => [],
       })
@@ -684,7 +684,7 @@ describe JSONAPI::Serializer do
         serializer: MyApp::PostSerializer,
         include_linkages: ['long-comments'],
       })
-      expect(JSONAPI::Serializer.serialize(post, include: ['long-comments'])).to eq({
+      expect(ForestAdmin::JSONAPI::Serializer.serialize(post, include: ['long-comments'])).to eq({
         'data' => expected_primary_data,
         'included' => [
           serialize_primary(long_comments.first, {serializer: MyApp::LongCommentSerializer}),
@@ -702,7 +702,7 @@ describe JSONAPI::Serializer do
         serializer: MyApp::PostSerializer,
         include_linkages: ['long-comments'],
       })
-      expect(JSONAPI::Serializer.serialize(post, include: ['long-comments'])).to eq({
+      expect(ForestAdmin::JSONAPI::Serializer.serialize(post, include: ['long-comments'])).to eq({
         'data' => expected_primary_data,
         'included' => [
           serialize_primary(long_comment, {serializer: MyApp::LongCommentSerializer}),
@@ -721,7 +721,7 @@ describe JSONAPI::Serializer do
         serializer: MyApp::PostSerializer,
         include_linkages: ['long-comments'],
       })
-      expect(JSONAPI::Serializer.serialize(post, include: ['long-comments'])).to eq({
+      expect(ForestAdmin::JSONAPI::Serializer.serialize(post, include: ['long-comments'])).to eq({
         'data' => expected_primary_data,
         'included' => [
           serialize_primary(post.long_comments.first, {serializer: MyApp::LongCommentSerializer}),
@@ -732,7 +732,7 @@ describe JSONAPI::Serializer do
 
     it 'errors if include is not a defined attribute' do
       user = create(:user)
-      expect { JSONAPI::Serializer.serialize(user, include: ['fake-attr']) }.to raise_error
+      expect { ForestAdmin::JSONAPI::Serializer.serialize(user, include: ['fake-attr']) }.to raise_error
     end
 
     it 'handles recursive loading of relationships' do
@@ -766,7 +766,7 @@ describe JSONAPI::Serializer do
         ],
       }
       includes = ['long-comments.post.author']
-      actual_data = JSONAPI::Serializer.serialize(post, include: includes)
+      actual_data = ForestAdmin::JSONAPI::Serializer.serialize(post, include: includes)
       # Multiple expectations for better diff output for debugging.
       expect(actual_data['data']).to eq(expected_data['data'])
       expect(actual_data['included']).to eq(expected_data['included'])
@@ -803,7 +803,7 @@ describe JSONAPI::Serializer do
       }
 
       includes = ['long-comments.user']
-      actual_data = JSONAPI::Serializer.serialize(post, include: includes)
+      actual_data = ForestAdmin::JSONAPI::Serializer.serialize(post, include: includes)
 
       # Multiple expectations for better diff output for debugging.
       expect(actual_data['data']).to eq(expected_data['data'])
@@ -832,7 +832,7 @@ describe JSONAPI::Serializer do
         ],
       }
       includes = ['long-comments.user']
-      actual_data = JSONAPI::Serializer.serialize(post, include: includes)
+      actual_data = ForestAdmin::JSONAPI::Serializer.serialize(post, include: includes)
 
       # Multiple expectations for better diff output for debugging.
       expect(actual_data['data']).to eq(expected_data['data'])
@@ -871,7 +871,7 @@ describe JSONAPI::Serializer do
       }
       # Also test that it handles string include arguments.
       includes = 'long-comments,long-comments.post.author'
-      actual_data = JSONAPI::Serializer.serialize(post, include: includes)
+      actual_data = ForestAdmin::JSONAPI::Serializer.serialize(post, include: includes)
 
       # Multiple expectations for better diff output for debugging.
       expect(actual_data['data']).to eq(expected_data['data'])
@@ -884,11 +884,11 @@ describe JSONAPI::Serializer do
         long_comments = create_list(:long_comment, 2)
         posts = create_list(:post, 2, :with_author, long_comments: long_comments)
 
-        expected_primary_data = JSONAPI::Serializer.send(:serialize_primary_multi, posts, {
+        expected_primary_data = ForestAdmin::JSONAPI::Serializer.send(:serialize_primary_multi, posts, {
           serializer: MyApp::PostSerializer,
           include_linkages: ['long-comments'],
         })
-        data = JSONAPI::Serializer.serialize(posts, is_collection: true, include: ['long-comments'])
+        data = ForestAdmin::JSONAPI::Serializer.serialize(posts, is_collection: true, include: ['long-comments'])
         expect(data).to eq({
           'data' => expected_primary_data,
           'included' => [
@@ -908,7 +908,7 @@ describe JSONAPI::Serializer do
         long_comments = [first_comment, second_comment]
         post = create(:post, :with_author, long_comments: long_comments)
 
-        serialized_data = JSONAPI::Serializer.serialize(post, fields: {posts: :title})
+        serialized_data = ForestAdmin::JSONAPI::Serializer.serialize(post, fields: {posts: :title})
         expect(serialized_data).to eq ({
           'data' => {
             'type' => 'posts',
@@ -932,7 +932,7 @@ describe JSONAPI::Serializer do
         post = create(:post, :with_author, long_comments: long_comments)
 
         fields = {posts: 'title,author,long-comments'}
-        serialized_data = JSONAPI::Serializer.serialize(post, fields: fields)
+        serialized_data = ForestAdmin::JSONAPI::Serializer.serialize(post, fields: fields)
         expect(serialized_data['data']['relationships']).to eq ({
           'author' => {
             'links' => {
@@ -957,7 +957,7 @@ describe JSONAPI::Serializer do
         long_comments = [first_comment, second_comment]
         post = create(:post, :with_author, long_comments: long_comments)
 
-        serialized_data = JSONAPI::Serializer.serialize(post, fields: {posts: ['title', 'author']})
+        serialized_data = ForestAdmin::JSONAPI::Serializer.serialize(post, fields: {posts: ['title', 'author']})
         expect(serialized_data['data']['attributes']).to eq ({
           'title' => post.title
         })
@@ -986,7 +986,7 @@ describe JSONAPI::Serializer do
         })
 
         fields = {posts: 'title,author', users: ''}
-        serialized_data = JSONAPI::Serializer.serialize(post, fields: fields, include: 'author')
+        serialized_data = ForestAdmin::JSONAPI::Serializer.serialize(post, fields: fields, include: 'author')
         expect(serialized_data).to eq ({
           'data' => expected_primary_data,
           'included' => [
@@ -999,7 +999,7 @@ describe JSONAPI::Serializer do
         })
 
         fields = {posts: 'title,author'}
-        serialized_data = JSONAPI::Serializer.serialize(post, fields: fields, include: 'author')
+        serialized_data = ForestAdmin::JSONAPI::Serializer.serialize(post, fields: fields, include: 'author')
         expect(serialized_data).to eq ({
           'data' => expected_primary_data,
           'included' => [
@@ -1021,19 +1021,19 @@ describe JSONAPI::Serializer do
 
   describe 'internal-only parse_relationship_paths' do
     it 'correctly handles empty arrays' do
-      result = JSONAPI::Serializer.send(:parse_relationship_paths, [])
+      result = ForestAdmin::JSONAPI::Serializer.send(:parse_relationship_paths, [])
       expect(result).to eq({})
     end
 
     it 'correctly handles single-level relationship paths' do
-      result = JSONAPI::Serializer.send(:parse_relationship_paths, ['foo'])
+      result = ForestAdmin::JSONAPI::Serializer.send(:parse_relationship_paths, ['foo'])
       expect(result).to eq({
         'foo' => {_include: true}
       })
     end
 
     it 'correctly handles multi-level relationship paths' do
-      result = JSONAPI::Serializer.send(:parse_relationship_paths, ['foo.bar'])
+      result = ForestAdmin::JSONAPI::Serializer.send(:parse_relationship_paths, ['foo.bar'])
       expect(result).to eq({
         'foo' => {_include: true, 'bar' => {_include: true}}
       })
@@ -1041,7 +1041,7 @@ describe JSONAPI::Serializer do
 
     it 'correctly handles multi-level relationship paths with same parent' do
       paths = ['foo', 'foo.bar']
-      result = JSONAPI::Serializer.send(:parse_relationship_paths, paths)
+      result = ForestAdmin::JSONAPI::Serializer.send(:parse_relationship_paths, paths)
       expect(result).to eq({
         'foo' => {_include: true, 'bar' => {_include: true}}
       })
@@ -1049,7 +1049,7 @@ describe JSONAPI::Serializer do
 
     it 'correctly handles multi-level relationship paths with different parent' do
       paths = ['foo', 'bar', 'bar.baz']
-      result = JSONAPI::Serializer.send(:parse_relationship_paths, paths)
+      result = ForestAdmin::JSONAPI::Serializer.send(:parse_relationship_paths, paths)
       expect(result).to eq({
         'foo' => {_include: true},
         'bar' => {_include: true, 'baz' => {_include: true}},
@@ -1058,7 +1058,7 @@ describe JSONAPI::Serializer do
 
     it 'correctly handles three-leveled path' do
       paths = ['foo', 'foo.bar', 'foo.bar.baz']
-      result = JSONAPI::Serializer.send(:parse_relationship_paths, paths)
+      result = ForestAdmin::JSONAPI::Serializer.send(:parse_relationship_paths, paths)
       expect(result).to eq({
         'foo' => {_include: true, 'bar' => {_include: true, 'baz' => {_include: true}}}
       })
@@ -1066,7 +1066,7 @@ describe JSONAPI::Serializer do
 
     it 'correctly handles three-leveled path with skipped middle' do
       paths = ['foo', 'foo.bar.baz']
-      result = JSONAPI::Serializer.send(:parse_relationship_paths, paths)
+      result = ForestAdmin::JSONAPI::Serializer.send(:parse_relationship_paths, paths)
       expect(result).to eq({
         'foo' => {_include: true, 'bar' => {_include: true, 'baz' => {_include: true}}}
       })
@@ -1079,40 +1079,40 @@ describe JSONAPI::Serializer do
       options = {serializer: MyApp::PostSerializerWithContext}
 
       options[:context] = {show_body: false}
-      data = JSONAPI::Serializer.serialize(post, options)
+      data = ForestAdmin::JSONAPI::Serializer.serialize(post, options)
       expect(data['data']['attributes']).to_not have_key('body')
 
       options[:context] = {show_body: true}
-      data = JSONAPI::Serializer.serialize(post, options)
+      data = ForestAdmin::JSONAPI::Serializer.serialize(post, options)
       expect(data['data']['attributes']).to have_key('body')
       expect(data['data']['attributes']['body']).to eq('Body for Post 1')
 
       options[:context] = {hide_body: true}
-      data = JSONAPI::Serializer.serialize(post, options)
+      data = ForestAdmin::JSONAPI::Serializer.serialize(post, options)
       expect(data['data']['attributes']).to_not have_key('body')
 
       options[:context] = {hide_body: false}
-      data = JSONAPI::Serializer.serialize(post, options)
+      data = ForestAdmin::JSONAPI::Serializer.serialize(post, options)
       expect(data['data']['attributes']).to have_key('body')
       expect(data['data']['attributes']['body']).to eq('Body for Post 1')
 
       options[:context] = {show_body: false, hide_body: false}
-      data = JSONAPI::Serializer.serialize(post, options)
+      data = ForestAdmin::JSONAPI::Serializer.serialize(post, options)
       expect(data['data']['attributes']).to_not have_key('body')
 
       options[:context] = {show_body: true, hide_body: false}
-      data = JSONAPI::Serializer.serialize(post, options)
+      data = ForestAdmin::JSONAPI::Serializer.serialize(post, options)
       expect(data['data']['attributes']).to have_key('body')
       expect(data['data']['attributes']['body']).to eq('Body for Post 1')
 
       # Remember: attribute is configured as if: show_body?, unless: hide_body?
       # and the results should be logically AND'd together:
       options[:context] = {show_body: false, hide_body: true}
-      data = JSONAPI::Serializer.serialize(post, options)
+      data = ForestAdmin::JSONAPI::Serializer.serialize(post, options)
       expect(data['data']['attributes']).to_not have_key('body')
 
       options[:context] = {show_body: true, hide_body: true}
-      data = JSONAPI::Serializer.serialize(post, options)
+      data = ForestAdmin::JSONAPI::Serializer.serialize(post, options)
       expect(data['data']['attributes']).to_not have_key('body')
     end
   end
@@ -1143,7 +1143,7 @@ describe JSONAPI::Serializer do
         ],
       }
       includes = ['long-comments']
-      actual_data = JSONAPI::Serializer.serialize(post, context: context, include: includes)
+      actual_data = ForestAdmin::JSONAPI::Serializer.serialize(post, context: context, include: includes)
       # Multiple expectations for better diff output for debugging.
       expect(actual_data['data']).to eq(expected_data['data'])
       expect(actual_data['included']).to eq(expected_data['included'])
@@ -1155,7 +1155,7 @@ describe JSONAPI::Serializer do
     it 'is empty by default' do
       long_comments = create_list(:long_comment, 1)
       post = create(:post, long_comments: long_comments)
-      data = JSONAPI::Serializer.serialize(post)
+      data = ForestAdmin::JSONAPI::Serializer.serialize(post)
       expect(data['data']['links']['self']).to eq('/posts/1')
       expect(data['data']['relationships']['author']['links']).to eq({
         'self' => '/posts/1/relationships/author',
@@ -1166,7 +1166,7 @@ describe JSONAPI::Serializer do
     it 'adds base_url to links if passed' do
       long_comments = create_list(:long_comment, 1)
       post = create(:post, long_comments: long_comments)
-      data = JSONAPI::Serializer.serialize(post, base_url: 'http://example.com')
+      data = ForestAdmin::JSONAPI::Serializer.serialize(post, base_url: 'http://example.com')
       expect(data['data']['links']['self']).to eq('http://example.com/posts/1')
       expect(data['data']['relationships']['author']['links']).to eq({
         'self' => 'http://example.com/posts/1/relationships/author',
@@ -1177,7 +1177,7 @@ describe JSONAPI::Serializer do
     it 'uses overriden base_url method if it exists' do
       long_comments = create_list(:long_comment, 1)
       post = create(:post, long_comments: long_comments)
-      data = JSONAPI::Serializer.serialize(post, serializer: MyApp::PostSerializerWithBaseUrl)
+      data = ForestAdmin::JSONAPI::Serializer.serialize(post, serializer: MyApp::PostSerializerWithBaseUrl)
       expect(data['data']['links']['self']).to eq('http://example.com/posts/1')
       expect(data['data']['relationships']['author']['links']).to eq({
         'self' => 'http://example.com/posts/1/relationships/author',
@@ -1190,7 +1190,7 @@ describe JSONAPI::Serializer do
     it 'inherits attributes' do
       tagged_post = create(:tagged_post)
       options = {serializer: MyApp::PostSerializerWithInheritedProperties}
-      data = JSONAPI::Serializer.serialize(tagged_post, options);
+      data = ForestAdmin::JSONAPI::Serializer.serialize(tagged_post, options);
       expect(data['data']['attributes']['title']).to eq('Title for TaggedPost 1');
       expect(data['data']['attributes']['tag']).to eq('Tag for TaggedPost 1');
     end
@@ -1199,7 +1199,7 @@ describe JSONAPI::Serializer do
       long_comments = create_list(:long_comment, 2)
       tagged_post = create(:tagged_post, :with_author, long_comments: long_comments)
       options = {serializer: MyApp::PostSerializerWithInheritedProperties}
-      data = JSONAPI::Serializer.serialize(tagged_post, options);
+      data = ForestAdmin::JSONAPI::Serializer.serialize(tagged_post, options);
 
       expect(data['data']['relationships']).to eq({
         'author' => {
@@ -1221,19 +1221,19 @@ describe JSONAPI::Serializer do
   describe 'include validation' do
     it 'raises an exception when join character is invalid' do
       expect do
-        JSONAPI::Serializer.serialize(create(:post), include: 'long_comments');
-      end.to raise_error(JSONAPI::Serializer::InvalidIncludeError)
+        ForestAdmin::JSONAPI::Serializer.serialize(create(:post), include: 'long_comments');
+      end.to raise_error(ForestAdmin::JSONAPI::Serializer::InvalidIncludeError)
 
       expect do
-        JSONAPI::Serializer.serialize(create(:post), include: 'long-comments');
+        ForestAdmin::JSONAPI::Serializer.serialize(create(:post), include: 'long-comments');
       end.not_to raise_error
 
       expect do
-        JSONAPI::Serializer.serialize(create(:underscore_test), include: 'tagged-posts');
-      end.to raise_error(JSONAPI::Serializer::InvalidIncludeError)
+        ForestAdmin::JSONAPI::Serializer.serialize(create(:underscore_test), include: 'tagged-posts');
+      end.to raise_error(ForestAdmin::JSONAPI::Serializer::InvalidIncludeError)
 
       expect do
-        JSONAPI::Serializer.serialize(create(:underscore_test), include: 'tagged_posts');
+        ForestAdmin::JSONAPI::Serializer.serialize(create(:underscore_test), include: 'tagged_posts');
       end.not_to raise_error
     end
   end
@@ -1241,7 +1241,7 @@ describe JSONAPI::Serializer do
   describe 'serializer with namespace option' do
     it 'can serialize a simple object with namespace Api::V1' do
       user = create(:user)
-      expect(JSONAPI::Serializer.serialize(user, {namespace: Api::V1})).to eq({
+      expect(ForestAdmin::JSONAPI::Serializer.serialize(user, {namespace: Api::V1})).to eq({
         'data' => serialize_primary(user, {serializer: Api::V1::MyApp::UserSerializer}),
       })
     end
@@ -1277,7 +1277,7 @@ describe JSONAPI::Serializer do
         ],
       }
       includes = ['long-comments.post.author']
-      actual_data = JSONAPI::Serializer.serialize(post, include: includes, namespace: Api::V1)
+      actual_data = ForestAdmin::JSONAPI::Serializer.serialize(post, include: includes, namespace: Api::V1)
       # Multiple expectations for better diff output for debugging.
       expect(actual_data['data']).to eq(expected_data['data'])
       expect(actual_data['included']).to eq(expected_data['included'])
@@ -1299,7 +1299,7 @@ describe JSONAPI::Serializer do
       let(:notification_name) { 'render.jsonapi_serializers.serialize_primary' }
 
       it 'sends an event for a single serialize call' do
-        JSONAPI::Serializer.serialize(post)
+        ForestAdmin::JSONAPI::Serializer.serialize(post)
 
         expect(events.length).to eq(1)
         expect(events[0].name).to eq(notification_name)
@@ -1307,7 +1307,7 @@ describe JSONAPI::Serializer do
       end
 
       it 'sends events for includes' do
-        JSONAPI::Serializer.serialize(post, include: ['author'])
+        ForestAdmin::JSONAPI::Serializer.serialize(post, include: ['author'])
 
         expect(events.length).to eq(2)
         expect(events[0].payload).to eq({class_name: "MyApp::Post"})
@@ -1319,12 +1319,12 @@ describe JSONAPI::Serializer do
       let(:notification_name) { 'render.jsonapi_serializers.find_recursive_relationships' }
 
       it 'does not send event when there are no includes' do
-        JSONAPI::Serializer.serialize(post)
+        ForestAdmin::JSONAPI::Serializer.serialize(post)
         expect(events.length).to eq(0)
       end
 
       it 'sends events for includes' do
-        JSONAPI::Serializer.serialize(post, include: ['author'])
+        ForestAdmin::JSONAPI::Serializer.serialize(post, include: ['author'])
 
         expect(events.length).to eq(2)
         expect(events[0].name).to eq(notification_name)

@@ -863,3 +863,6 @@ See [Releases](https://github.com/fotinakis/jsonapi-serializers/releases).
 5. Create a new Pull Request
 
 Throw a ★ on it! :)
+
+# Forked from https://github.com/fotinakis/jsonapi-serializers
+Add a new namespace to avoid conflict with the `jsonapi-serializer` gem.

@@ -4,13 +4,13 @@ $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
 require 'jsonapi-serializers/version'
 
 Gem::Specification.new do |spec|
-  spec.name          = "jsonapi-serializers"
-  spec.version       = JSONAPI::Serializer::VERSION
+  spec.name          = "forestadmin-jsonapi-serializers"
+  spec.version       = ForestAdmin::JSONAPI::Serializer::VERSION
   spec.authors       = ["Mike Fotinakis"]
   spec.email         = ["mike@fotinakis.com"]
   spec.summary       = %q{Pure Ruby readonly serializers for the JSON:API spec.}
   spec.description   = %q{Pure Ruby readonly serializers for the JSON:API spec.}
-  spec.homepage      = "https://github.com/fotinakis/jsonapi-serializers"
+  spec.homepage      = "https://github.com/forestadmin/jsonapi-serializers"
   spec.license       = "MIT"
 
   spec.files         = `git ls-files -z`.split("\x0")
